@@ -1,0 +1,8 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/blocklib/include)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} COMMON_SRCS)
+set(CMAKE_CXX_STANDARD 17)
+link_directories(${PROJECT_SOURCE_DIR}/build/lib)
+link_libraries(block_static pthread)
+add_subdirectory(./client)
+add_subdirectory(./server)
