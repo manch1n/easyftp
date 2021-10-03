@@ -1,6 +1,9 @@
 #include "ServerHandler.h"
-#include "Interpreter.h"
-#include "ErrCheck.h"
+
+#include <vector>
+
+#include "src/Interpreter.h"
+#include "src/ErrCheck.h"
 
 ServerHandler::ServerHandler(uint16_t port) : acceptor(InetAddress(port)), fileio("./myftpwkdir")
 {

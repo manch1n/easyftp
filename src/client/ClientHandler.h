@@ -1,10 +1,15 @@
 #pragma once
-#include "Interpreter.h"
-#include "Fileio.h"
-#include "Handler.h"
-#include "TcpStream.h"
+
 #include <map>
 #include <functional>
+#include <string>
+#include <vector>
+
+#include "blocklib/include/TcpStream.h"
+
+#include "src/Interpreter.h"
+#include "src/Fileio.h"
+#include "src/Handler.h"
 
 class ClientHandler : public Handler
 {

@@ -4,7 +4,8 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "ErrCheck.h"
+
+#include "src/ErrCheck.h"
 
 namespace fs = std::filesystem;
 class Fileio

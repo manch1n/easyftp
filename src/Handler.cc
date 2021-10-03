@@ -1,6 +1,7 @@
-#include "Handler.h"
-#include "ErrCheck.h"
 #include <algorithm>
+
+#include "src/Handler.h"
+#include "src/ErrCheck.h"
 
 std::vector<char> Handler::receiveMsg(TcpStream &strm)
 {

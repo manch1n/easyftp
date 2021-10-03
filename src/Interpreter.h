@@ -1,5 +1,10 @@
 #pragma once
-#include "CommandReply.h"
+
+#include <sys/types.h>
+
+#include <vector>
+
+#include "src/CommandReply.h"
 
 class Interpreter
 {

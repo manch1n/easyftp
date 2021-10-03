@@ -1,6 +1,8 @@
 #include "Interpreter.h"
-#include "ErrCheck.h"
+
 #include <cstring>
+
+#include "src/ErrCheck.h"
 
 Message Interpreter::parseRawMsg(const std::vector<char> &rawMsg)
 {

@@ -1,7 +1,11 @@
 #pragma once
-#include "CommandReply.h"
 
-#include "TcpStream.h"
+#include <vector>
+
+#include "blocklib/include/TcpStream.h"
+
+#include "src/CommandReply.h"
+
 class Handler
 {
 protected:

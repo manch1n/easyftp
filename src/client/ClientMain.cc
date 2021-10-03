@@ -1,4 +1,10 @@
-#include "ClientHandler.h"
+
+#include <string>
+
+#include "blocklib/include/InetAddress.h"
+#include "blocklib/include/TcpStream.h"
+
+#include "src/client/ClientHandler.h"
 
 int main(int argc, char **argv)
 {

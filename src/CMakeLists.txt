@@ -1,5 +1,5 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/blocklib/include)
+include_directories(${PROJECT_SOURCE_DIR})
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} COMMON_SRCS)
 set(CMAKE_CXX_STANDARD 17)
 link_directories(${PROJECT_SOURCE_DIR}/build/lib)
