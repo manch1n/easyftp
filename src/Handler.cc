@@ -3,6 +3,8 @@
 #include "src/Handler.h"
 #include "src/ErrCheck.h"
 
+using namespace myftp;
+
 std::vector<char> Handler::receiveMsg(TcpStream &strm)
 {
     std::vector<char> buf(HEADER_SIZE);

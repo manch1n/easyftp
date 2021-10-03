@@ -6,12 +6,15 @@
 
 #include "src/CommandReply.h"
 
-class Handler
+namespace myftp
 {
-protected:
-    std::vector<char> receiveMsg(TcpStream &strm);
-    void sendMsg(TcpStream &strm, const std::vector<char> &msg);
-    std::vector<std::vector<char>> splitByUnitSeperator(const std::vector<char> &s, bool splitOnce = false);
+    class Handler
+    {
+    protected:
+        std::vector<char> receiveMsg(TcpStream &strm);
+        void sendMsg(TcpStream &strm, const std::vector<char> &msg);
+        std::vector<std::vector<char>> splitByUnitSeperator(const std::vector<char> &s, bool splitOnce = false);
 
-    const char unitSeperator = '\31';
-};
+        const char unitSeperator = '\31';
+    };
+}

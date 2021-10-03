@@ -4,6 +4,8 @@
 
 #include "src/ErrCheck.h"
 
+using namespace myftp;
+
 Message Interpreter::parseRawMsg(const std::vector<char> &rawMsg)
 {
     Message msg;

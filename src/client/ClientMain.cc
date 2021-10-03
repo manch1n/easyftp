@@ -6,6 +6,7 @@
 
 #include "src/client/ClientHandler.h"
 
+using namespace myftp;
 int main(int argc, char **argv)
 {
     ASSERT_EXIT(argc == 2, "usage: ./client <serverip>");

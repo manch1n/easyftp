@@ -5,6 +5,8 @@
 #include "src/Interpreter.h"
 #include "src/ErrCheck.h"
 
+using namespace myftp;
+
 ServerHandler::ServerHandler(uint16_t port) : acceptor(InetAddress(port)), fileio("./myftpwkdir")
 {
     cmdToMethod[Command::EXIT] = std::bind(&ServerHandler::handleEXIT, this, std::placeholders::_1, std::placeholders::_2);

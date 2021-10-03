@@ -4,6 +4,8 @@
 #include <cstring>
 #include <algorithm>
 
+using namespace myftp;
+
 std::vector<char> Fileio::readFile(const std::string &fileName) //file must exist
 {
     fs::directory_entry entry(fileName);

@@ -6,9 +6,12 @@
 
 #include "src/CommandReply.h"
 
-class Interpreter
+namespace myftp
 {
-public:
-    static Message parseRawMsg(const std::vector<char> &rawMsg);
-    static std::vector<char> formatPacket(int32_t cmd, const std::vector<char> &data = std::vector<char>(0));
-};
+    class Interpreter
+    {
+    public:
+        static Message parseRawMsg(const std::vector<char> &rawMsg);
+        static std::vector<char> formatPacket(int32_t cmd, const std::vector<char> &data = std::vector<char>(0));
+    };
+} // namespace myftp

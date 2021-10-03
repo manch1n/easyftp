@@ -1,5 +1,7 @@
 #include "ClientHandler.h"
 
+using namespace myftp;
+
 ClientHandler::ClientHandler(const std::string &dir, TcpStreamPtr &&netPtr) : fileio(dir), netStrm(std::move(netPtr))
 {
     strToMethods["LOCALLIST"] = std::bind(&ClientHandler::handleLOCAL_LIST, this);

@@ -11,36 +11,39 @@
 #include "src/Fileio.h"
 #include "src/Handler.h"
 
-class ClientHandler : public Handler
+namespace myftp
 {
-public:
-    explicit ClientHandler(const std::string &dir, TcpStreamPtr &&netPtr);
-
-    void handleLOCAL_LIST();
-    void handleREMOTE_LIST();
-    void handleUserInput(const std::string &userInput);
-    void handleEXIT();
-    void handleRETRIEVE();
-    void handleSTORE();
-    bool getRun();
-
-private:
-    inline std::string vecstrConvertToStr(const std::vector<char> &vecstr)
+    class ClientHandler : public Handler
     {
-        std::string str;
-        str.assign(vecstr.begin(), vecstr.end());
-        return str;
-    }
+    public:
+        explicit ClientHandler(const std::string &dir, TcpStreamPtr &&netPtr);
 
-    std::vector<std::string> splitBySpace(const std::string &str);
+        void handleLOCAL_LIST();
+        void handleREMOTE_LIST();
+        void handleUserInput(const std::string &userInput);
+        void handleEXIT();
+        void handleRETRIEVE();
+        void handleSTORE();
+        bool getRun();
 
-    inline void printErr()
-    {
-        std::cout << "fail,something wrong. try again." << std::endl;
-    }
-    Fileio fileio;
-    std::map<std::string, std::function<void(void)>> strToMethods;
-    TcpStreamPtr netStrm;
-    std::string fileName;
-    bool run = true;
-};
+    private:
+        inline std::string vecstrConvertToStr(const std::vector<char> &vecstr)
+        {
+            std::string str;
+            str.assign(vecstr.begin(), vecstr.end());
+            return str;
+        }
+
+        std::vector<std::string> splitBySpace(const std::string &str);
+
+        inline void printErr()
+        {
+            std::cout << "fail,something wrong. try again." << std::endl;
+        }
+        Fileio fileio;
+        std::map<std::string, std::function<void(void)>> strToMethods;
+        TcpStreamPtr netStrm;
+        std::string fileName;
+        bool run = true;
+    };
+}

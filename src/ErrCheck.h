@@ -1,6 +1,9 @@
 #pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
+namespace myftp
+{
 #define ASSERT_EXIT(expresion, ...)                                           \
     do                                                                        \
     {                                                                         \
@@ -17,3 +20,4 @@
     {                                 \
         fprintf(stdout, __VA_ARGS__); \
     } while (0)
+}
