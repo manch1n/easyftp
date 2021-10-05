@@ -17,9 +17,20 @@ namespace myftp
     {
     public:
         ServerHandler(uint16_t port);
+
+        ServerHandler(const ServerHandler &) = delete;
+        ServerHandler &operator=(const ServerHandler &) = delete;
+
         void start();
 
     private:
+        struct ClientStrm
+        {
+            explicit ClientStrm(TcpStreamPtr &&ptr) : strm(std::move(ptr)), run(true) {}
+            TcpStreamPtr strm;
+            bool run;
+        };
+
         void handleNewClient(TcpStreamPtr &&strm);
 
         void handleREMOTE_LIST(ClientStrm &strm, Message &msg);
@@ -32,24 +43,17 @@ namespace myftp
 
         void sendFailPacket(ClientStrm &strm);
 
-        inline std::string vecStrToStr(const std::vector<char> &filename)
+        inline std::string vecStrToStr(const std::vector<char> &filename) const
         {
             return std::string(filename.begin(), filename.end());
         }
 
-        bool run = true;
+        bool run_ = true;
 
-        Acceptor acceptor;
+        Acceptor acceptor_;
 
-        std::map<Command, std::function<void(ClientStrm &strm, Message &)>> cmdToMethod;
+        std::map<Command, std::function<void(ClientStrm &strm, Message &)>> cmdToMethod_;
 
-        Fileio fileio;
+        Fileio fileio_;
     };
-
-    struct ClientStrm
-    {
-        explicit ClientStrm(TcpStreamPtr &&ptr) : strm(std::move(ptr)), run(true) {}
-        TcpStreamPtr strm;
-        bool run;
-    };
-}
+} // namespace myftp

@@ -18,6 +18,9 @@ namespace myftp
     public:
         explicit ClientHandler(const std::string &dir, TcpStreamPtr &&netPtr);
 
+        ClientHandler(const ClientHandler &) = delete;
+        ClientHandler &operator=(const ClientHandler &) = delete;
+
         void handleLOCAL_LIST();
         void handleREMOTE_LIST();
         void handleUserInput(const std::string &userInput);
@@ -27,23 +30,23 @@ namespace myftp
         bool getRun();
 
     private:
-        inline std::string vecstrConvertToStr(const std::vector<char> &vecstr)
+        inline std::string vecstrConvertToStr(const std::vector<char> &vecstr) const
         {
             std::string str;
             str.assign(vecstr.begin(), vecstr.end());
             return str;
         }
 
-        std::vector<std::string> splitBySpace(const std::string &str);
+        std::vector<std::string> splitBySpace(const std::string &str) const;
 
-        inline void printErr()
+        inline void printErr() const
         {
             std::cout << "fail,something wrong. try again." << std::endl;
         }
-        Fileio fileio;
-        std::map<std::string, std::function<void(void)>> strToMethods;
-        TcpStreamPtr netStrm;
-        std::string fileName;
-        bool run = true;
+        Fileio fileio_;
+        std::map<std::string, std::function<void(void)>> strToMethods_;
+        TcpStreamPtr netStrm_;
+        std::string fileName_;
+        bool run_ = true;
     };
-}
+} //namespace myftp

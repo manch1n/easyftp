@@ -2,19 +2,19 @@
 
 using namespace myftp;
 
-ClientHandler::ClientHandler(const std::string &dir, TcpStreamPtr &&netPtr) : fileio(dir), netStrm(std::move(netPtr))
+ClientHandler::ClientHandler(const std::string &dir, TcpStreamPtr &&netPtr) : fileio_(dir), netStrm_(std::move(netPtr))
 {
-    strToMethods["LOCALLIST"] = std::bind(&ClientHandler::handleLOCAL_LIST, this);
-    strToMethods["REMOTELIST"] = std::bind(&ClientHandler::handleREMOTE_LIST, this);
-    strToMethods["EXIT"] = std::bind(&ClientHandler::handleEXIT, this);
-    strToMethods["RETRIEVE"] = std::bind(&ClientHandler::handleRETRIEVE, this);
-    strToMethods["STORE"] = std::bind(&ClientHandler::handleSTORE, this);
+    strToMethods_["LOCALLIST"] = std::bind(&ClientHandler::handleLOCAL_LIST, this);
+    strToMethods_["REMOTELIST"] = std::bind(&ClientHandler::handleREMOTE_LIST, this);
+    strToMethods_["EXIT"] = std::bind(&ClientHandler::handleEXIT, this);
+    strToMethods_["RETRIEVE"] = std::bind(&ClientHandler::handleRETRIEVE, this);
+    strToMethods_["STORE"] = std::bind(&ClientHandler::handleSTORE, this);
 }
 
 void ClientHandler::handleLOCAL_LIST()
 {
-    std::vector<std::string> files = fileio.getLocalFiles();
-    std::cout << "in diretory: " << fileio.getCurDir() << std::endl;
+    std::vector<std::string> files = fileio_.getLocalFiles();
+    std::cout << "in diretory: " << fileio_.getCurDir() << std::endl;
     for (const std::string &fileName : files)
     {
         std::cout << fileName << " ";
@@ -24,16 +24,16 @@ void ClientHandler::handleLOCAL_LIST()
 
 void ClientHandler::handleREMOTE_LIST()
 {
-    std::vector<char> msg = Interpreter::formatPacket(static_cast<int32_t>(Command::REMOTE_LIST), std::vector<char>(0));
-    sendMsg(*netStrm, msg);
-    std::vector<char> recvRaw = receiveMsg(*netStrm);
+    std::vector<char> msg = Interpreter::formatPacket(static_cast<int32_t>(Command::kREMOTE_LIST), std::vector<char>(0));
+    sendMsg(netStrm_.get(), msg);
+    std::vector<char> recvRaw = receiveMsg(netStrm_.get());
     Message recvMsg = Interpreter::parseRawMsg(recvRaw);
-    if (static_cast<Reply>(recvMsg.cmdOrReply) == Reply::FAIL)
+    if (static_cast<Reply>(recvMsg.cmdOrReply) == Reply::kFAIL)
     {
         printErr();
         return;
     }
-    auto nameList = splitByUnitSeperator(recvMsg.data);
+    auto nameList = splitByUnitSeperator(recvMsg.data, false);
     for (const std::vector<char> &fileName : nameList)
     {
         std::cout << vecstrConvertToStr(fileName) << " ";
@@ -51,7 +51,7 @@ void ClientHandler::handleUserInput(const std::string &userInput)
     }
 
     std::transform(strs[0].begin(), strs[0].end(), strs[0].begin(), ::toupper);
-    if (strToMethods.find(strs[0]) == strToMethods.end())
+    if (strToMethods_.find(strs[0]) == strToMethods_.end())
     {
         printErr();
         return;
@@ -65,48 +65,48 @@ void ClientHandler::handleUserInput(const std::string &userInput)
         }
         else
         {
-            fileName = strs[1];
+            fileName_ = strs[1];
         }
     }
-    strToMethods[strs[0]]();
+    strToMethods_[strs[0]]();
 }
 
 void ClientHandler::handleEXIT()
 {
-    auto exitPacket = Interpreter::formatPacket(static_cast<int32_t>(Command::EXIT), std::vector<char>(0));
-    sendMsg(*netStrm, exitPacket);
-    run = false;
+    auto exitPacket = Interpreter::formatPacket(static_cast<int32_t>(Command::kEXIT), std::vector<char>(0));
+    sendMsg(netStrm_.get(), exitPacket);
+    run_ = false;
 }
 
 void ClientHandler::handleRETRIEVE()
 {
-    auto packet = Interpreter::formatPacket(static_cast<int32_t>(Command::RETRIEVE), std::vector<char>(fileName.begin(), fileName.end()));
-    sendMsg(*netStrm, packet);
+    auto packet = Interpreter::formatPacket(static_cast<int32_t>(Command::kRETRIEVE), std::vector<char>(fileName_.begin(), fileName_.end()));
+    sendMsg(netStrm_.get(), packet);
 
-    auto rawPacket = receiveMsg(*netStrm);
+    auto rawPacket = receiveMsg(netStrm_.get());
     auto msg = Interpreter::parseRawMsg(rawPacket);
-    if (static_cast<Reply>(msg.cmdOrReply) == Reply::FAIL)
+    if (static_cast<Reply>(msg.cmdOrReply) == Reply::kFAIL)
     {
         printErr();
         return;
     }
-    fileio.writeFile(msg.data);
+    fileio_.writeFile(msg.data);
     std::cout << "Success" << std::endl;
 }
 
 void ClientHandler::handleSTORE()
 {
-    if (fileio.fileExist(fileName) == false)
+    if (fileio_.fileExist(fileName_) == false)
     {
         printErr();
         return;
     }
-    auto pakcet = fileio.readFile(fileName);
-    auto msg = Interpreter::formatPacket(static_cast<int32_t>(Command::STORE), pakcet);
-    sendMsg(*netStrm, msg);
-    auto rawResponse = receiveMsg(*netStrm);
+    auto pakcet = fileio_.readFile(fileName_);
+    auto msg = Interpreter::formatPacket(static_cast<int32_t>(Command::kSTORE), pakcet);
+    sendMsg(netStrm_.get(), msg);
+    auto rawResponse = receiveMsg(netStrm_.get());
     auto resMsg = Interpreter::parseRawMsg(rawResponse);
-    if (resMsg.cmdOrReply != static_cast<int32_t>(Reply::SUCCESS))
+    if (resMsg.cmdOrReply != static_cast<int32_t>(Reply::kSUCCESS))
     {
         printErr();
     }
@@ -118,10 +118,10 @@ void ClientHandler::handleSTORE()
 
 bool ClientHandler::getRun()
 {
-    return run;
+    return run_;
 }
 
-std::vector<std::string> ClientHandler::splitBySpace(const std::string &str)
+std::vector<std::string> ClientHandler::splitBySpace(const std::string &str) const
 {
     std::vector<std::string> ret;
     size_t lastPos = str.find_first_not_of(' ', 0);

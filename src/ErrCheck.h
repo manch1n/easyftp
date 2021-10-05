@@ -20,4 +20,4 @@ namespace myftp
     {                                 \
         fprintf(stdout, __VA_ARGS__); \
     } while (0)
-}
+} //namespace myftp

@@ -8,17 +8,17 @@ namespace myftp
 {
     enum class Command
     {
-        STORE = 0,
-        RETRIEVE,
-        LOCAL_LIST,
-        REMOTE_LIST,
-        EXIT
+        kSTORE = 0,
+        kRETRIEVE,
+        kLOCAL_LIST,
+        kREMOTE_LIST,
+        kEXIT
     };
 
     enum class Reply
     {
-        SUCCESS = 100,
-        FAIL
+        kSUCCESS = 100,
+        kFAIL
     };
 
     struct Message
@@ -28,5 +28,6 @@ namespace myftp
         std::vector<char> data;
     };
 
-    const u_int64_t HEADER_SIZE = sizeof(int32_t) + sizeof(u_int64_t);
-}
+    const u_int64_t kHEADER_SIZE = sizeof(int32_t) + sizeof(u_int64_t);
+    const char kunitSeperator = '\31';
+} //namespace myftp

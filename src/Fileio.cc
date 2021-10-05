@@ -4,9 +4,11 @@
 #include <cstring>
 #include <algorithm>
 
+#include "CommandReply.h"
+
 using namespace myftp;
 
-std::vector<char> Fileio::readFile(const std::string &fileName) //file must exist
+std::vector<char> Fileio::readFile(const std::string &fileName) const //file must exist
 {
     fs::directory_entry entry(fileName);
     // ASSERT_EXIT(entry.is_regular_file() == true, "no such file");
@@ -15,7 +17,7 @@ std::vector<char> Fileio::readFile(const std::string &fileName) //file must exis
     std::ifstream ifs(fileName, std::ios::binary);
     std::vector<char> ret(fileSize + fileName.size() + 1);
     std::memcpy(ret.data(), fileName.data(), fileName.size());
-    ret[fileName.size()] = unitSeperator;
+    ret[fileName.size()] = kunitSeperator;
     ifs.read(ret.data() + fileName.size() + 1, fileSize);
     ifs.close();
     return ret;
@@ -23,7 +25,7 @@ std::vector<char> Fileio::readFile(const std::string &fileName) //file must exis
 
 void Fileio::writeFile(const std::vector<char> &buf)
 {
-    auto nameEnd = std::find(buf.begin(), buf.end(), unitSeperator);
+    auto nameEnd = std::find(buf.begin(), buf.end(), kunitSeperator);
     ASSERT_EXIT(nameEnd != buf.end(), "write file error");
     std::string fileName(buf.begin(), nameEnd);
     std::ofstream ofstrm(fileName, std::ios::out | std::ios::binary | std::ios::trunc);
@@ -34,7 +36,7 @@ void Fileio::writeFile(const std::vector<char> &buf)
     fs::permissions(fileName, fs::perms::others_read | fs::perms::others_write, fs::perm_options::add);
 }
 
-std::vector<char> Fileio::getRemoteFiles()
+std::vector<char> Fileio::getRemoteFiles() const
 {
     std::vector<char> ret;
     fs::directory_iterator list("./");
@@ -45,12 +47,12 @@ std::vector<char> Fileio::getRemoteFiles()
         {
             ret.push_back(c);
         }
-        ret.push_back('\31');
+        ret.push_back(kunitSeperator);
     }
     return ret;
 }
 
-std::vector<std::string> Fileio::getLocalFiles()
+std::vector<std::string> Fileio::getLocalFiles() const
 {
     std::vector<std::string> ret;
     fs::directory_iterator list("./");
@@ -61,12 +63,12 @@ std::vector<std::string> Fileio::getLocalFiles()
     return ret;
 }
 
-std::string Fileio::getCurDir()
+std::string Fileio::getCurDir() const
 {
-    return workDir;
+    return workDir_;
 }
 
-bool Fileio::fileExist(const std::string &fileName)
+bool Fileio::fileExist(const std::string &fileName) const
 {
     if (fs::exists(fileName) == false)
     {
