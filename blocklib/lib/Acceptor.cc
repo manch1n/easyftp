@@ -1,45 +1,23 @@
 #include "Acceptor.h"
 
-#include "InetAddress.h"
-#include "TcpStream.h"
+#include "assert.h"
 
-#include <stdio.h>
-#include <sys/socket.h>
-
-Acceptor::Acceptor(const InetAddress& listenAddr)
-  : listenSock_(Socket::createTCP(listenAddr.family()))
+Acceptor::Acceptor(const InetAddress &listenAddr) : listenSock_(std::move(Socket::createTCP(AF_INET)))
 {
-  listenSock_.setReuseAddr(true);
-  listenSock_.bindOrDie(listenAddr);
-  listenSock_.listenOrDie();
+    listenSock_.bindOrDie(listenAddr);
+    listenSock_.listenOrDie();
 }
 
 TcpStreamPtr Acceptor::accept()
 {
-  // FIXME: use accept4
-  int sockfd = ::accept(listenSock_.fd(), NULL, NULL);
-  if (sockfd >= 0)
-  {
-    return TcpStreamPtr(new TcpStream(Socket(sockfd)));
-  }
-  else
-  {
-    perror("Acceptor::accept");
-    return TcpStreamPtr();
-  }
+    int sockfd = ::accept(listenSock_.fd(), NULL, NULL);
+    assert(sockfd != -1);
+    return std::make_unique<TcpStream>(Socket(sockfd));
 }
 
 Socket Acceptor::acceptSocketOrDie()
 {
-  // FIXME: use accept4
-  int sockfd = ::accept(listenSock_.fd(), NULL, NULL);
-  if (sockfd >= 0)
-  {
+    int sockfd = ::accept(listenSock_.fd(), NULL, NULL);
+    assert(sockfd != -1);
     return Socket(sockfd);
-  }
-  else
-  {
-    perror("Acceptor::acceptSocketOrDie");
-    abort();
-  }
 }

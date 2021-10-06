@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 
-#include <utility>  // swap
+#include <utility> // swap
 #include <netinet/in.h>
 
 class InetAddress;
@@ -9,23 +9,24 @@ class InetAddress;
 // RAII handle for socket fd
 class Socket : noncopyable
 {
- public:
+public:
   explicit Socket(int sockfd);
-  ~Socket();  // close sockfd_
+  ~Socket(); // close sockfd_
 
-  Socket(Socket&& rhs)
-    : Socket(rhs.sockfd_)
+  //define the move constructor and the copy constructor will be deleted.
+  Socket(Socket &&rhs)
+      : Socket(rhs.sockfd_)
   {
     rhs.sockfd_ = -1;
   }
 
-  Socket& operator=(Socket&& rhs)
+  Socket &operator=(Socket &&rhs)
   {
     swap(rhs);
     return *this;
   }
 
-  void swap(Socket& rhs)
+  void swap(Socket &rhs)
   {
     std::swap(sockfd_, rhs.sockfd_);
   }
@@ -33,10 +34,10 @@ class Socket : noncopyable
   int fd() { return sockfd_; }
 
   // Sockets API
-  void bindOrDie(const InetAddress& addr);
+  void bindOrDie(const InetAddress &addr);
   void listenOrDie();
   // return 0 on success
-  int connect(const InetAddress& addr);
+  int connect(const InetAddress &addr);
   void shutdownWrite();
 
   void setReuseAddr(bool on);
@@ -45,13 +46,13 @@ class Socket : noncopyable
   InetAddress getLocalAddr() const;
   InetAddress getPeerAddr() const;
 
-  int recv(void* buf, int len);
-  int send(const void* buf, int len);
+  int recv(void *buf, int len);
+  int send(const void *buf, int len);
 
   // factory methods
-  static Socket createTCP(sa_family_t family);  // AF_INET or AF_INET6
-  static Socket createUDP(sa_family_t family);  // AF_INET or AF_INET6
+  static Socket createTCP(sa_family_t family); // AF_INET or AF_INET6
+  static Socket createUDP(sa_family_t family); // AF_INET or AF_INET6
 
- private:
+private:
   int sockfd_;
 };

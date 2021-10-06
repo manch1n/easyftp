@@ -1,133 +1,109 @@
 #include "Socket.h"
-#include "InetAddress.h"
 
-#include <assert.h>
 #include <unistd.h>
-#include <netinet/in.h>
+#include <assert.h>
+#include <fcntl.h>
 #include <netinet/tcp.h>
-#include <sys/socket.h>
 
-Socket::Socket(int sockfd)
-  : sockfd_(sockfd)
+#include "InetAddress.h" //FIXME F_D could be deleted
+Socket::Socket(int sockfd) : sockfd_(sockfd)
 {
-  assert(sockfd_ >= 0);
 }
 
 Socket::~Socket()
 {
-  if (sockfd_ >= 0)
-  {
-    int ret = ::close(sockfd_);
-    assert(ret == 0); (void)ret;
-  }
+    ::close(sockfd_);
 }
 
-void Socket::bindOrDie(const InetAddress& addr)
+void Socket::bindOrDie(const InetAddress &addr)
 {
-  int ret = ::bind(sockfd_, addr.get_sockaddr(), addr.length());
-  if (ret)
-  {
-    perror("Socket::bindOrDie");
-    abort();
-  }
+    int ret = ::bind(sockfd_, addr.get_sockaddr(), addr.length());
+    assert(ret != -1);
 }
 
 void Socket::listenOrDie()
 {
-  int ret = ::listen(sockfd_, SOMAXCONN);
-  if (ret)
-  {
-    perror("Socket::listen");
-    abort();
-  }
+    int ret = ::listen(sockfd_, SOMAXCONN);
+    assert(ret != -1);
 }
 
-int Socket::connect(const InetAddress& addr)
+int Socket::connect(const InetAddress &addr)
 {
-  return ::connect(sockfd_, addr.get_sockaddr(), addr.length());
+    int ret = ::connect(sockfd_, addr.get_sockaddr(), addr.length());
+    return ret;
 }
 
 void Socket::shutdownWrite()
 {
-  if (::shutdown(sockfd_, SHUT_WR) < 0)
-  {
-    perror("Socket::shutdownWrite");
-  }
+    ::shutdown(sockfd_, SHUT_WR);
 }
 
 void Socket::setReuseAddr(bool on)
 {
-  int optval = on ? 1 : 0;
-  if (::setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR,
-                   &optval, sizeof optval) < 0)
-  {
-    perror("Socket::setReuseAddr");
-  }
+    if (on)
+    {
+        int one = 1;
+        int ret = ::setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+        assert(ret != -1);
+    }
 }
 
 void Socket::setTcpNoDelay(bool on)
 {
-  int optval = on ? 1 : 0;
-  if (::setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY,
-               &optval, static_cast<socklen_t>(sizeof optval)) < 0)
-  {
-    perror("Socket::setTcpNoDelay");
-  }
+    if (on)
+    {
+        int one = 1;
+        int ret = ::setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+        assert(ret != -1);
+    }
 }
 
 InetAddress Socket::getLocalAddr() const
 {
-  struct sockaddr_storage localaddr;
-  socklen_t addrlen = sizeof localaddr;
-  struct sockaddr* addr = reinterpret_cast<struct sockaddr*>(&localaddr);
-  if (::getsockname(sockfd_, addr, &addrlen) < 0)
-  {
-    perror("Socket::getLocalAddr");
-  }
-  return InetAddress(*addr);
+    struct sockaddr localaddr;
+    memZero(&localaddr, sizeof(localaddr));
+    socklen_t len = sizeof(localaddr);
+    int ret = ::getsockname(sockfd_, &localaddr, &len);
+    if (ret == -1)
+    {
+        printf("err:%s\n", strerror(errno));
+    }
+    assert(ret != -1);
+    return InetAddress(localaddr);
 }
 
 InetAddress Socket::getPeerAddr() const
 {
-  struct sockaddr_storage peeraddr;
-  socklen_t addrlen = sizeof peeraddr;
-  struct sockaddr* addr = reinterpret_cast<struct sockaddr*>(&peeraddr);
-  if (::getpeername(sockfd_, addr, &addrlen) < 0)
-  {
-    perror("Socket::getPeerAddr");
-  }
-  return InetAddress(*addr);
+    struct sockaddr peeraddr;
+    memZero(&peeraddr, sizeof(peeraddr));
+    socklen_t len = sizeof(peeraddr);
+    int ret = ::getpeername(sockfd_, &peeraddr, &len);
+    assert(ret != -1);
+    return InetAddress(peeraddr);
 }
 
-int Socket::recv(void* buf, int len)
+int Socket::recv(void *buf, int len)
 {
-#ifdef TEMP_FAILURE_RETRY
-  return TEMP_FAILURE_RETRY(::recv(sockfd_, buf, len, 0));
-#else
-  return ::recv(sockfd_, buf, len, 0);
-#endif
+    int nrecv = 0;
+    TEMP_FAILURE_RETRY(nrecv = ::recv(sockfd_, buf, len, 0));
+    return nrecv;
 }
 
-int Socket::send(const void* buf, int len)
+int Socket::send(const void *buf, int len)
 {
-#ifdef TEMP_FAILURE_RETRY
-  return TEMP_FAILURE_RETRY(::send(sockfd_, buf, len, 0));
-#else
-  return ::send(sockfd_, buf, len, 0);
-#endif
+    int nsend = 0;
+    TEMP_FAILURE_RETRY(nsend = ::send(sockfd_, buf, len, 0));
+    return nsend;
 }
 
 Socket Socket::createTCP(sa_family_t family)
 {
-  int sockfd = ::socket(family, SOCK_STREAM | SOCK_CLOEXEC, IPPROTO_TCP);
-  assert(sockfd >= 0);
-  return Socket(sockfd);
+    int sockfd = ::socket(family, SOCK_STREAM, 0);
+    return Socket(sockfd);
 }
 
 Socket Socket::createUDP(sa_family_t family)
 {
-  int sockfd = ::socket(family, SOCK_DGRAM | SOCK_CLOEXEC, IPPROTO_UDP);
-  assert(sockfd >= 0);
-  return Socket(sockfd);
+    int sockfd = ::socket(family, SOCK_DGRAM, 0);
+    return Socket(sockfd);
 }
-
