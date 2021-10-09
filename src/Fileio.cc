@@ -1,6 +1,5 @@
 #include "Fileio.h"
 
-#include <fstream>
 #include <cstring>
 #include <algorithm>
 
@@ -86,4 +85,49 @@ bool Fileio::fileExist(const std::string &fileName) const
     }
     else
         return false;
+}
+
+void myftp::Fileio::enrollFile(const std::string &fileName, RWOption opt, size_t left)
+{
+    ASSERT_EXIT(fileHandler_.find(fileName) == fileHandler_.end(), "already exist");
+    fileHandler_[fileName] = std::move(FileData(fileName, left, opt));
+}
+
+void myftp::Fileio::cancelFile(const std::string &fileName)
+{
+    ASSERT_EXIT(fileHandler_.find(fileName) != fileHandler_.end(), "not found");
+    fileHandler_.erase(fileName);
+}
+
+bool myftp::Fileio::writeFilePiece(const std::string &fileName, const std::vector<char> &buf)
+{
+    FileData &fileData = fileHandler_[fileName];
+    ASSERT_EXIT(fileData.getOpt() == RWOption::kWrite, "not write");
+    fileData.writeFilePiece(buf);
+    bool done = fileData.ifDone();
+    if (done)
+    {
+        cancelFile(fileName);
+    }
+    return done;
+}
+
+bool myftp::Fileio::readFilePiece(const std::string &fileName, std::vector<char> *buf) //buf size must equal to kbufsize
+{
+    FileData &fileData = fileHandler_[fileName];
+    ASSERT_EXIT(fileData.getOpt() == RWOption::kRead, "not read");
+    fileData.readFilePiece(buf);
+    bool done = fileData.ifDone();
+    if (done)
+    {
+        cancelFile(fileName);
+    }
+    return done;
+}
+
+bool myftp::Fileio::getFileIfDone(const std::string &fileName) const
+{
+    auto iter = fileHandler_.find(fileName);
+    ASSERT_EXIT(iter != fileHandler_.end(), "not found");
+    return iter->second.ifDone();
 }
