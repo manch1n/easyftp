@@ -57,7 +57,21 @@ void ServerHandler::handleREMOTE_LIST(ClientStrm &strm, Message &msg)
 void ServerHandler::handleSTORE(ClientStrm &strm, Message &msg)
 {
     std::cout << "call store" << std::endl;
-    fileio_.writeFile(msg.data);
+    //fileio_.writeFile(msg.data);
+    std::string fileName;
+    size_t fileLen;
+    Interpreter::parseFileInfo(msg.data, &fileLen, &fileName);
+    fileio_.enrollFile(fileName, Fileio::RWOption::kWrite, fileLen);
+    while (1)
+    {
+        auto rawMsg = receiveMsg(strm.strm.get());
+        auto msg = Interpreter::parseRawMsg(rawMsg);
+        bool completed = fileio_.writeFilePiece(fileName, msg.data);
+        if (completed == true)
+        {
+            break;
+        }
+    }
     auto packet = Interpreter::formatPacket(static_cast<int32_t>(Reply::kSUCCESS));
     sendMsg(strm.strm.get(), packet);
 }
@@ -69,11 +83,27 @@ void ServerHandler::handleRETRIEVE(ClientStrm &strm, Message &msg)
     if (!fileio_.fileExist(fileName))
     {
         sendFailPacket(strm);
+        return;
     }
 
-    auto fileData = fileio_.readFile(fileName);
-    auto packet = Interpreter::formatPacket(static_cast<int32_t>(Reply::kSUCCESS), fileData);
-    sendMsg(strm.strm.get(), packet);
+    //auto fileData = fileio_.readFile(fileName);
+    size_t fileSize = fileio_.getFileSize(fileName);
+    std::vector<char> fileInfo = Interpreter::formatFileInfo(fileName, fileSize);
+    auto fileMsg = Interpreter::formatPacket(static_cast<int32_t>(Command::kTRANSFERING), fileInfo);
+    sendMsg(strm.strm.get(), fileMsg);
+    fileio_.enrollFile(fileName, Fileio::RWOption::kRead, fileSize);
+
+    while (1)
+    {
+        std::vector<char> fileData;
+        bool completed = fileio_.readFilePiece(fileName, &fileData);
+        auto fileMsg = Interpreter::formatPacket(static_cast<int32_t>(Command::kTRANSFERING), fileData);
+        sendMsg(strm.strm.get(), fileMsg);
+        if (completed == true)
+        {
+            break;
+        }
+    }
 }
 
 void ServerHandler::handleEXIT(ClientStrm &strm, Message &msg)

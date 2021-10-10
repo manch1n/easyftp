@@ -33,7 +33,7 @@ void ClientHandler::handleREMOTE_LIST()
         printErr();
         return;
     }
-    auto nameList = splitByUnitSeperator(recvMsg.data, false);
+    auto nameList = Interpreter::splitByUnitSeperator(recvMsg.data, false);
     for (const std::vector<char> &fileName : nameList)
     {
         std::cout << vecstrConvertToStr(fileName) << " ";
@@ -90,7 +90,22 @@ void ClientHandler::handleRETRIEVE()
         printErr();
         return;
     }
-    fileio_.writeFile(msg.data);
+    std::string fileName;
+    size_t fileLen;
+    Interpreter::parseFileInfo(msg.data, &fileLen, &fileName);
+
+    fileio_.enrollFile(fileName, Fileio::RWOption::kWrite, fileLen);
+    while (1)
+    {
+        std::vector<char> rawMsg = receiveMsg(netStrm_.get());
+        Message msg = Interpreter::parseRawMsg(rawMsg);
+        bool completed = fileio_.writeFilePiece(fileName, msg.data);
+        if (completed == true)
+        {
+            break;
+        }
+    }
+
     std::cout << "Success" << std::endl;
 }
 
@@ -101,9 +116,28 @@ void ClientHandler::handleSTORE()
         printErr();
         return;
     }
-    auto pakcet = fileio_.readFile(fileName_);
-    auto msg = Interpreter::formatPacket(static_cast<int32_t>(Command::kSTORE), pakcet);
+    //auto pakcet = fileio_.readFile(fileName_);
+    //auto msg = Interpreter::formatPacket(static_cast<int32_t>(Command::kSTORE), pakcet);
+    //sendMsg(netStrm_.get(), msg);
+
+    size_t fileSize = fileio_.getFileSize(fileName_);
+    auto fileInfo = Interpreter::formatFileInfo(fileName_, fileSize);
+    auto msg = Interpreter::formatPacket(static_cast<int32_t>(Command::kSTORE), fileInfo);
     sendMsg(netStrm_.get(), msg);
+
+    fileio_.enrollFile(fileName_, Fileio::RWOption::kRead, fileSize);
+    while (1)
+    {
+        std::vector<char> fileData;
+        bool completed = fileio_.readFilePiece(fileName_, &fileData);
+        auto msg = Interpreter::formatPacket(static_cast<int32_t>(Command::kTRANSFERING), fileData);
+        sendMsg(netStrm_.get(), msg);
+        if (completed == true)
+        {
+            break;
+        }
+    }
+
     auto rawResponse = receiveMsg(netStrm_.get());
     auto resMsg = Interpreter::parseRawMsg(rawResponse);
     if (resMsg.cmdOrReply != static_cast<int32_t>(Reply::kSUCCESS))

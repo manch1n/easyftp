@@ -5,6 +5,7 @@
 Acceptor::Acceptor(const InetAddress &listenAddr) : listenSock_(std::move(Socket::createTCP(AF_INET)))
 {
     listenSock_.bindOrDie(listenAddr);
+    listenSock_.setReuseAddr(true);
     listenSock_.listenOrDie();
 }
 

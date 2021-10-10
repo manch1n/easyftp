@@ -45,6 +45,7 @@ namespace myftp
         bool writeFilePiece(const std::string &fileName, const std::vector<char> &buf);
         bool readFilePiece(const std::string &fileName, std::vector<char> *buf);
         bool getFileIfDone(const std::string &fileName) const;
+        size_t getFileSize(const std::string &fileName) const;
 
     private:
         class FileData

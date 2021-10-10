@@ -4,6 +4,7 @@
 
 #include <vector>
 
+//header: [4:cmd][8:length]
 namespace myftp
 {
     enum class Command
@@ -12,9 +13,12 @@ namespace myftp
         kRETRIEVE,
         kLOCAL_LIST,
         kREMOTE_LIST,
+        kTRANSFERING,
+        kTRANSCOMPLETED,
         kEXIT
     };
-
+    //1 transfer data format:[4][8][filename][unitseperator][filedata]
+    //2 transfer file block by block:[4:FILENAMECMD][8][filename]   [4:transfering|completed][8][leftsize][unitseperater][filedata]
     enum class Reply
     {
         kSUCCESS = 100,

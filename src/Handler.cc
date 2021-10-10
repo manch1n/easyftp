@@ -27,34 +27,3 @@ void Handler::sendMsg(TcpStream *strm, const std::vector<char> &msg)
     size_t ret = strm->sendAll(msg.data(), msg.size());
     ASSERT_EXIT(ret == msg.size(), "send error");
 }
-
-std::vector<std::vector<char>> Handler::splitByUnitSeperator(const std::vector<char> &s, bool splitOnce) const
-{
-    std::vector<std::vector<char>> ret;
-    auto start = s.begin();
-    auto end = std::find(s.cbegin(), s.cend(), kunitSeperator);
-    if (splitOnce == true)
-    {
-        ret.push_back(std::vector<char>(s.begin(), end));
-        if (end != s.cend())
-        {
-            ret.push_back(std::vector<char>(end + 1, s.cend()));
-        }
-        return ret;
-    }
-    while (1)
-    {
-        if (start == end)
-        {
-            break;
-        }
-        ret.push_back(std::vector<char>(start, end));
-        if (end == s.cend())
-        {
-            break;
-        }
-        start = end + 1;
-        end = std::find(start, s.cend(), kunitSeperator);
-    }
-    return ret;
-}

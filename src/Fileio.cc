@@ -112,8 +112,9 @@ bool myftp::Fileio::writeFilePiece(const std::string &fileName, const std::vecto
     return done;
 }
 
-bool myftp::Fileio::readFilePiece(const std::string &fileName, std::vector<char> *buf) //buf size must equal to kbufsize
+bool myftp::Fileio::readFilePiece(const std::string &fileName, std::vector<char> *buf)
 {
+    buf->resize(kBufSize);
     FileData &fileData = fileHandler_[fileName];
     ASSERT_EXIT(fileData.getOpt() == RWOption::kRead, "not read");
     fileData.readFilePiece(buf);
@@ -128,6 +129,15 @@ bool myftp::Fileio::readFilePiece(const std::string &fileName, std::vector<char>
 bool myftp::Fileio::getFileIfDone(const std::string &fileName) const
 {
     auto iter = fileHandler_.find(fileName);
-    ASSERT_EXIT(iter != fileHandler_.end(), "not found");
+    if (iter == fileHandler_.end())
+    {
+        return true;
+    }
     return iter->second.ifDone();
+}
+
+size_t myftp::Fileio::getFileSize(const std::string &fileName) const
+{
+    fs::directory_entry entry(fileName);
+    return entry.file_size();
 }
